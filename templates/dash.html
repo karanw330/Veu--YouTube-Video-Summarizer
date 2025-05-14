@@ -473,22 +473,6 @@
                                     <div class="message-timestamp">10:30 AM</div>
                                 </div>
                             </div>
-                            <div class="message user-message">
-                                <div class="message-avatar">U</div>
-                                <div class="message-content">
-                                    I need help creating a website structure for an AI agent.
-                                    <div class="message-timestamp">10:31 AM</div>
-                                </div>
-                            </div>
-                            <div class="message ai-message">
-                                <div class="message-avatar"><img src="static/img_2.png" class="ai-avatar"></div>
-                                <div class="message-content">
-                                    I'd be happy to help with that! What type of features are you looking for in your AI agent website?
-                                    <div class="message-timestamp">10:31 AM</div>
-                                </div>
-                            </div>
-
-
 
                             <div class="thinking-indicator">
                                 <div class="message-avatar"><img src="static/img_2.png" class="ai-avatar"></div>
@@ -507,7 +491,7 @@
 
                         <!-- Chat Input -->
                         <div class="chat-input" role="region" aria-label="Message input">
-                            <textarea class="input-field" placeholder="Type your message here..." aria-label="Message input field" id="user_message"></textarea>
+                            <textarea class="input-field" placeholder="Ask AI" aria-label="Message input field" id="user_message"></textarea>
                             <button class="send-button" aria-label="Send message" onclick="user_message()">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
                                     <line x1="22" y1="2" x2="11" y2="13"></line>
@@ -528,6 +512,29 @@
                                 </div>
                             </div>`;
         hidden.insertAdjacentHTML("beforebegin",new_message);
+
+        fetch("/response", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/x-www-form-urlencoded"
+        },
+        body:
+        `input=${encodeURIComponent(message)}&`
+        })
+        .then(response => response.json())
+        .then(data => {
+             const hidden = document.getElementById("hidden");
+             let new_message = `<div class="message ai-message">
+                                <div class="message-avatar"><img src="static/img_2.png" class="ai-avatar"></div>
+                                <div class="message-content">
+                                    ${data}
+                                    <div class="message-timestamp">10:31 AM</div>
+                                </div>
+                            </div>`;
+             hidden.insertAdjacentHTML("beforebegin",new_message);
+             new_message.scrollIntoView(false);
+         })
+
         document.getElementById("user_message").value = "";
     }
 </script>
