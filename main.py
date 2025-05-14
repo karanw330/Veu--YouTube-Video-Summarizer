@@ -2,7 +2,7 @@ import google.generativeai as genai
 import requests
 from flask import Flask, render_template, request, jsonify
 import datetime
-from secrets import *
+from secret_data import *
 
 from google.auth.exceptions import DefaultCredentialsError
 
