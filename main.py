@@ -1,21 +1,16 @@
 from google import genai
 from google.genai import types
-import requests
 
 import time
 from flask import Flask, render_template, request, jsonify
-import datetime
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 from bs4 import BeautifulSoup
-from selenium.webdriver.support.expected_conditions import element_selection_state_to_be
 
 from secret_data import *
 from selenium import webdriver
-from selenium.common import NoSuchElementException, ElementClickInterceptedException
 from selenium.webdriver.chrome.options import Options
-from google.auth.exceptions import DefaultCredentialsError
 import markdown
 app = Flask(__name__)
 
