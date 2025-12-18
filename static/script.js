@@ -36,6 +36,20 @@ function user_message(){
         document.getElementById("user_message").value = "";
     }
 
+    const socket = new WebSocket('ws://localhost:8765');
+
+    socket.onopen= function(event){
+        console.log("Online")
+    }
+
+    socket.onmessage=(event)=>{
+        console.log(event.data);
+}
+
+    socket.onclose = function(event){
+        console.log("Connection closed")
+}
+
     window.addEventListener("keydown", function (event)
 {
     if (event.key === 'Enter') {
