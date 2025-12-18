@@ -17,8 +17,10 @@ import markdown
 
 import asyncio
 from websockets.asyncio.server import serve
-from websockets.sync.client import connect
+
 app = Flask(__name__)
+
+ws_loop = None
 
 ytt_api = YouTubeTranscriptApi()
 client = genai.Client(api_key=googleapi_key1)
@@ -28,25 +30,37 @@ chat = client.chats.create(
         system_instruction="You are a youtube video summarizer which accepts a youtube url and returns its summary, your name this Veu. If you detect you youtube url, you simply return the keyword 'yeee'.")
 )
 
-async def hello(trans_list):
-    with connect("ws://localhost:8765") as websocket:
+clients = set()
+
+async def hello(ws):
+    clients.add(ws)
+    try:
+        await ws.wait_closed()
+    finally:
+        clients.remove(ws)
+
+async def func_stream(trans_list):
+    for ws in clients:
         sem = client.models.generate_content_stream(
             model="gemini-2.5-flash",
-            contents=f"here is the list the transcript of the video, please summarise it in english {trans_list}",
-            )
+            contents=f"here is the list the transcript of the video, please summarise it in english {trans_list}, respond in html only, do not use markdown, Use <p>, <ul>, <li>, <strong>, <em> where appropriate.",
+        )
         for chunk in sem:
-            # final = markdown.markdown(chunk.text)
-            # print(final)
-            # websocket.send(final)
-            print(chunk.text, end="")
-
+            final = markdown.markdown(chunk.text)
+            print(final)
+            await ws.send(final)
+            # print(chunk.text, end="")
 
 def run_ws_server():
+    global ws_loop
+    ws_loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(ws_loop)
+
     async def main():
         async with serve(hello, "localhost", 8765):
             await asyncio.Future()
 
-    asyncio.run(main())
+    ws_loop.run_until_complete(main())
 
 def trans_api(url):
     lis = url.split("v=")
@@ -105,11 +119,12 @@ def response():
     print(user_message)
     text = markdown.markdown(ai_response.text)
     if text == '<p>yeee</p>':
-        # li = scrapeTranscript(user_message)
-        # print(li)
         li = trans_api(user_message)
-        asyncio.run(hello(li))
-        return jsonify("ok")
+        asyncio.run_coroutine_threadsafe(
+            func_stream(li),
+            ws_loop
+        )
+        return jsonify("")
     else:
         return jsonify(text)
 
